@@ -1,103 +1,198 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Loader2 } from 'lucide-react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [secret, setSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  useEffect(() => {
+    async function fetchSecret() {
+      try {
+        const res = await fetch('/api/secret');
+        if (!res.ok) throw new Error('Failed to fetch secret');
+        const data = await res.json();
+        setSecret(data.secret || 'No secret found');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSecret();
+  }, []);
+
+  return (
+    <main className="flex flex-col items-center justify-center min-h-screen p-6 bg-white space-y-8">
+      {/* Secret Demo Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="w-full max-w-lg"
+      >
+        <Card className="shadow-lg rounded-2xl border">
+          <CardHeader>
+            <CardTitle className="text-2xl">Kubernetes Secrets Demo</CardTitle>
+            <CardDescription>Securely display your environment secret</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {loading ? (
+              <div className="flex justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-neutral-400" />
+              </div>
+            ) : error ? (
+              <p className="text-center text-red-600 font-medium">{error}</p>
+            ) : (
+              <div className="space-y-2">
+                <Badge variant="outline" className="px-3 py-1">
+                  Secret Value
+                </Badge>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="break-words text-center font-mono text-lg text-blue-600"
+                >
+                  {secret}
+                </motion.p>
+                <Separator />
+                <div className="text-center">
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Button variant="ghost" size="sm">
+                        Copy to Clipboard
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Click to copy secret</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            )}
+          </CardContent>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            className="p-4 border-t flex justify-end"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+            <Button
+              variant="outline"
+              onClick={() => window.location.reload()}
+            >
+              Refresh
+            </Button>
+          </motion.div>
+        </Card>
+      </motion.div>
+
+      {/* Horizontal Layout for Steps and Manifests */}
+      <div className="flex flex-col lg:flex-row lg:space-x-6 w-full max-w-4xl">
+        {/* Steps Card */}
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Setup Steps</CardTitle>
+            <CardDescription>Follow these steps to deploy on Kubernetes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal list-inside space-y-2">
+              <li>Create your Docker image and push to registry</li>
+              <li>Apply <code>secret.yaml</code> to create Kubernetes Secret</li>
+              <li>Deploy application with <code>deployment.yaml</code></li>
+              <li>Expose service via <code>service.yaml</code> (NodePort)</li>
+              <li>Fetch Minikube IP and NodePort, then visit URL</li>
+            </ol>
+          </CardContent>
+        </Card>
+
+        {/* Manifests Card */}
+        <Card className="flex-1 shadow-sm">
+          <CardHeader>
+            <CardTitle>Kubernetes Manifests</CardTitle>
+            <CardDescription>YAML definitions for Secret, Deployment, and Service</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Secret YAML */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">secret.yaml</h3>
+              <pre className="overflow-auto rounded-lg bg-gray-100 p-4 text-sm">
+                <code>{`apiVersion: v1
+kind: Secret
+metadata:
+  name: my-secrets
+type: Opaque
+data:
+  username: ZHVtbXl1c2Vy
+  password: ZHVtbXlwYXNzd29yZA==`}</code>
+              </pre>
+            </div>
+            {/* Deployment YAML */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">deployment.yaml</h3>
+              <pre className="overflow-auto rounded-lg bg-gray-100 p-4 text-sm">
+                <code>{`apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextjs-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nextjs-app
+  template:
+    metadata:
+      labels:
+        app: nextjs-app
+    spec:
+      containers:
+      - name: nextjs-container
+        image: your-dockerhub-username/nextjs-app:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: SECRET_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: my-secrets
+              key: username
+        - name: SECRET_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: my-secrets
+              key: password`}</code>
+              </pre>
+            </div>
+            {/* Service YAML */}
+            <div>
+              <h3 className="text-lg font-medium mb-2">service.yaml</h3>
+              <pre className="overflow-auto rounded-lg bg-gray-100 p-4 text-sm">
+                <code>{`apiVersion: v1
+kind: Service
+metadata:
+  name: nextjs-service
+spec:
+  selector:
+    app: nextjs-app
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: NodePort`}</code>
+              </pre>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
   );
 }
